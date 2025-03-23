@@ -99,7 +99,8 @@
     }
   });
   
-  async function handleStartGame() {
+  // Handler for putting coins into the game
+  async function handlePutCoins() {
     if (!$page.data.user) {
       window.location.href = '/login';
       return;
@@ -116,10 +117,20 @@
       return;
     }
     
-    console.log("Start game clicked via Svelte handler");
-    await crashGame.startGame(activePb);
+    // Validate insertion amount
+    if (gameState.insertedAmount <= 0) {
+      crashGame.update(state => ({
+        ...state,
+        error: "Insert amount must be greater than 0"
+      }));
+      return;
+    }
+    
+    console.log("Put coins clicked via Svelte handler");
+    await crashGame.putCoins(activePb);
   }
   
+  // Cash out handler
   async function handleCashOut() {
     // Get the active PocketBase instance
     const activePb = getPbInstance();
@@ -136,12 +147,24 @@
     await crashGame.cashOut(activePb);
   }
   
+  // Handle input changes with min validation to prevent zero-insertion
+  function updateInsertAmount(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const value = parseFloat(input.value);
+    if (!isNaN(value) && value > 0) {
+      crashGame.setInsertAmount(value);
+    } else {
+      // If invalid value, reset to min of 1
+      crashGame.setInsertAmount(1);
+    }
+  }
+  
   // Periodic refresh of user data from server to ensure sync
   let refreshInterval: number;
   
   onMount(() => {
     if (browser) {
-      // Set up a periodic refresh every 10 seconds to ensure data stays in sync
+      // Set up a periodic refresh every second to ensure data stays in sync
       refreshInterval = window.setInterval(async () => {
         try {
           const activePb = getPbInstance();
@@ -151,18 +174,9 @@
         } catch (error) {
           console.error("Failed to refresh user data:", error);
         }
-      }, 10000);
+      }, 1000);
     }
   });
-  
-  // Handle input changes
-  function updateBetAmount(e: Event) {
-    const input = e.target as HTMLInputElement;
-    const value = parseFloat(input.value);
-    if (!isNaN(value) && value > 0) {
-      crashGame.setBetAmount(value);
-    }
-  }
   
   // Clean up subscriptions on destroy
   onDestroy(() => {
@@ -207,7 +221,25 @@
   </div>
   
   <!-- Game Display -->
-  <div class="w-full bg-gray-800 rounded-lg p-4 mb-4 animated-border-box">
+  <div class="w-full bg-gray-800 rounded-lg p-4 mb-4 ">
+    <!-- Timer Display -->
+    {#if gameState?.isWaitingForNextRound}
+      <div class="w-full text-center mb-2 ">
+        <div class="text-xl font-bold">
+          Next round in: <span class="text-yellow-400">{gameState.roundStartTimer}s</span>
+        </div>
+      </div>
+    {/if}
+    
+    <!-- Inserted Coins Display - Added -->
+    {#if gameState?.hasInsertedCoins}
+      <div class="w-full text-center mb-2">
+        <div class="text-lg font-semibold text-green-400">
+          Coins inserted: {gameState.insertedAmount}
+        </div>
+      </div>
+    {/if}
+    
     <div class="flex justify-between items-center mb-2">
       <div class="flex items-center">
         <span class="text-lg font-semibold mr-2">Multiplier:</span>
@@ -223,7 +255,7 @@
         </div>
       {/if}
       
-      {#if gameState?.isCrashed && !gameState?.userCashedOut}
+      {#if gameState?.isCrashed && gameState?.hasInsertedCoins && !gameState?.userCashedOut}
         <div class="text-red-500 font-bold text-xl">
           CRASHED AT {gameState.crashPoint.toFixed(2)}x
         </div>
@@ -239,34 +271,41 @@
   <!-- Controls -->
   <div class="flex flex-col md:flex-row w-full gap-4 mb-6">
     <div class="flex flex-col flex-1 bg-gray-800 rounded-lg p-4">
-      <h2 class="text-xl font-semibold mb-2">Bet</h2>
+      <h2 class="text-xl font-semibold mb-2">Insert Coins</h2>
+      <h2 class="text-lg font-normal mb-2">min 1</h2>
       <div class="flex items-center mb-2">
         <input
           type="number"
           min="1"
           max={gameState?.userCoins || 0}
-          value={gameState?.betAmount}
-          on:input={updateBetAmount}
+          value={gameState?.insertedAmount}
+          on:input={updateInsertAmount}
           class="bg-gray-700 text-white p-2 rounded w-full mr-2"
-          disabled={gameState?.isRunning || !$page.data.user}
+          disabled={!gameState?.isWaitingForNextRound || !$page.data.user}
         />
         <span>coins</span>
       </div>
 
-      <div class="flex gap-2 ">
-        <!-- Game Start Button - Using proper Svelte event handling -->
+      <div class="flex gap-2">
+        <!-- Put Coins Button - Renamed from Bet -->
         <button 
-          on:click={handleStartGame}
+          on:click={handlePutCoins}
           class="flex-1 px-4 py-2 font-semibold shine-button"
-          disabled={gameState?.isRunning || !$page.data.user}>
-          {gameState?.isRunning ? "In Progress..." : "Bet"}
+          disabled={!gameState?.isWaitingForNextRound || 
+                    !$page.data.user || 
+                    gameState?.insertedAmount <= 0 || 
+                    gameState?.insertedAmount > gameState?.userCoins}>
+          Put
         </button>
 
-        <!-- Cash Out Button - Using proper Svelte event handling -->
+        <!-- Cash Out Button - Only enabled if user has inserted coins -->
         <button 
           on:click={handleCashOut}
           class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-center text-white cursor-pointer rounded font-semibold"
-          disabled={!gameState?.isRunning || gameState?.userCashedOut || gameState?.isCrashed}>
+          disabled={!gameState?.isRunning || 
+                    gameState?.userCashedOut || 
+                    gameState?.isCrashed || 
+                    !gameState?.hasInsertedCoins}>
           Cash Out
         </button>
       </div>
@@ -283,6 +322,4 @@
       </div>
     </div>
   </div>
-  
-  
 </div>
