@@ -1,0 +1,226 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind variants;
+
+html,
+body {
+	@apply h-full overflow-hidden;
+}
+
+/* Continuous card shine effect */
+.shine {
+	position: relative;
+	overflow: hidden;
+        }
+        
+        .shine::before {
+	background: linear-gradient(
+	  to right,
+	  rgba(255, 255, 255, 0) 0%,
+	  rgba(255, 255, 255, 0.3) 100%
+	);
+	content: "";
+	display: block;
+	height: 100%;
+	left: -75%;
+	position: absolute;
+	top: 0;
+	transform: skewX(-25deg);
+	width: 50%;
+	z-index: 2;
+	animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+	0% {
+	  left: -75%;
+	}
+	100% {
+	  left: 125%;
+	}
+        }
+
+/* =====================
+   1. DIAGONAL SHINE EFFECT 
+   ===================== */
+   .diagonal-shine-card {
+	box-shadow: 1px 1px 5px 2px #ccc;
+	overflow: hidden;
+	position: relative;
+        }
+        
+        .diagonal-shine-container {
+	background: #e74c3c;
+	height: 125px;
+	width: 150%;
+	position: relative;
+	transform: rotate(-18deg) translatex(-170px) translatey(100px);
+        }
+        
+        .diagonal-shine-container::after {
+	content: "";
+	width: 90px;
+	height: 100%;
+	background-color: #fff;
+	opacity: 0.3;
+	position: absolute;
+	animation: diagonal-glare 2s infinite ease-in;
+        }
+        
+        @keyframes diagonal-glare {
+	from {
+	  left: 0;
+	  opacity: 0.3;
+	}
+	to {
+	  left: 100%;
+	  opacity: 0.6;
+	}
+        }
+        
+	/* =====================
+	CONTINUOUS BORDER ANIMATION
+	===================== */
+
+	/* Core container styles */
+	.animated-border-box {
+	position: relative;
+	overflow: hidden; 
+	z-index: 1;
+	border-radius: 10px;
+        }
+        
+        /* Primary border effect - RUNS CONTINUOUSLY */
+        .animated-border-box:before {
+	content: '';
+	z-index: -2;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%) rotate(0deg);
+	width: 99999px;
+	height: 99999px;
+	background-repeat: no-repeat;
+	background-position: 0 0;
+	background-image: conic-gradient(rgba(0,0,0,0), #1976ed, rgba(0,0,0,0) 25%);
+	/* Animation runs automatically without any hover trigger */
+	animation: rotate-border 4s linear infinite;
+        }
+        
+        /* Inner content area */
+        .animated-border-box:after {
+	content: '';
+	position: absolute;
+	z-index: -1;
+	left: 5px;
+	top: 5px;
+	width: calc(100% - 10px);
+	height: calc(100% - 10px);
+	background: #292a2e;
+	border-radius: 7px;
+        }
+        
+        /* Border rotation animation */
+        @keyframes rotate-border {
+	100% {
+	  transform: translate(-50%, -50%) rotate(1turn);
+	}
+        }
+        
+        /* Direct implementation for your cards */
+        .card.glow-border {
+	position: relative;
+	border-radius: 10px;
+	overflow: hidden;
+        }
+        
+        /* Continuously rotating border - NO HOVER REQUIRED */
+        .card.glow-border:before {
+	content: '';
+	z-index: -2;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%) rotate(0deg);
+	width: 99999px;
+	height: 99999px;
+	background-repeat: no-repeat;
+	background-position: 0 0;
+	background-image: conic-gradient(rgba(0,0,0,0), #1976ed, rgba(0,0,0,0) 25%);
+	/* Animation runs automatically and continuously */
+	animation: rotate-border 4s linear infinite;
+        }
+        
+        .card.glow-border:after {
+	content: '';
+	position: absolute;
+	z-index: -1;
+	left: 2px;
+	top: 2px;
+	width: calc(100% - 4px);
+	height: calc(100% - 4px);
+	background: inherit;
+	border-radius: inherit;
+        }
+        
+        /* =====================
+	 3. BUTTON SHINE EFFECT 
+	 ===================== */
+        .shine-button {
+	text-decoration: none;
+	
+	display: inline-block;
+	position: relative;
+	text-align: center;
+	color: #00c7ec;
+	border: 2px solid #00c7ec;
+	border-radius: 5px;
+	box-shadow: 0 0 0 0 transparent;
+	transition: all 0.2s ease-in;
+	overflow: hidden;
+        }
+        
+        .shine-button:hover {
+	color: white;
+	box-shadow: 0 0 30px 0 rgba(0, 199, 236, 0.5);
+	background-color: #00c7ec;
+	transition: all 0.2s ease-out;
+        }
+        
+        .shine-button:active {
+	box-shadow: 0 0 0 0 transparent;
+	transition: box-shadow 0.2s ease-in;
+        }
+        
+        .shine-button:before {
+	content: '';
+	display: block;
+	width: 0px;
+	height: 86%;
+	position: absolute;
+	top: 7%;
+	left: 0%;
+	opacity: 0;
+	background: white;
+	box-shadow: 0 0 15px 3px white;
+	transform: skewX(-20deg);
+	animation: button-shine 3s infinite;
+        }
+        
+        @keyframes button-shine {
+	0% {
+	  opacity: 0;
+	  left: 0%;
+	  width: 0px;
+	}
+	50% {
+	  opacity: 1;
+	  width: 30px;
+	}
+	100% {
+	  opacity: 0;
+	  left: 100%;
+	  width: 0px;
+	}
+        }
